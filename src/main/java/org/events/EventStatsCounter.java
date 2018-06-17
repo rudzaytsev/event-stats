@@ -1,8 +1,12 @@
 package org.events;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 
 /**
  * Counter of registered events
@@ -18,12 +22,16 @@ public class EventStatsCounter implements EventStats {
 
   @Override
   public long countEventsOfLastMinute() {
-    LocalDateTime currentTime = getCurrentTime();
+    return countEventsInLastOneOf(MINUTES);
+  }
+
+  private long countEventsInLastOneOf(ChronoUnit timeUnit) {
+    LocalDateTime now = getCurrentTime();
     Iterator<LocalDateTime> iter = eventTimes.iterator();
     long sum = 0;
     while(iter.hasNext()) {
       LocalDateTime eventTime = iter.next();
-      if (eventTime.isBefore(currentTime) && eventTime.isAfter(currentTime.minusMinutes(1))) {
+      if (eventTime.isBefore(now) && eventTime.isAfter(now.minus(1, timeUnit))) {
         sum++;
       }
     }
@@ -36,7 +44,7 @@ public class EventStatsCounter implements EventStats {
 
   @Override
   public long countEventsOfLastHour() {
-    return 0;
+    return countEventsInLastOneOf(HOURS);
   }
 
   @Override
