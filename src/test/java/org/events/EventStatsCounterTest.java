@@ -57,8 +57,9 @@ public class EventStatsCounterTest {
     assertEquals(0L, stats.countEventsOfLastMinute());
   }
 
-  private void registerEvents(List<LocalDateTime> oldEventTimes) {
-    for (LocalDateTime eventTime : oldEventTimes) {
+
+  private void registerEvents(List<LocalDateTime> eventTimes) {
+    for (LocalDateTime eventTime : eventTimes) {
       stats.registerEvent(eventTime);
     }
   }
