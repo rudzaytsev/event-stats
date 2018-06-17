@@ -5,8 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.time.temporal.ChronoUnit.*;
 
 /**
  * Counter of registered events
@@ -49,6 +48,6 @@ public class EventStatsCounter implements EventStats {
 
   @Override
   public long countEventsOfLastDay() {
-    return 0;
+    return countEventsInLastOneOf(DAYS);
   }
 }

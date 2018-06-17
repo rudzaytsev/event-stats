@@ -77,6 +77,25 @@ public class EventStatsCounterTest {
     assertEquals(0L, stats.countEventsOfLastHour());
   }
 
+  @Test
+  public void eventsOfLastDayShouldBeCounted() throws Exception {
+    List<LocalDateTime> eventTimes = asList(
+      now.minusHours(5), now.minusHours(5), now.minusHours(12),
+      now.minusHours(24), now.minusDays(1), now.minusDays(2), now.minusDays(3)
+    );
+    registerEvents(eventTimes);
+    assertEquals(3L, stats.countEventsOfLastDay());
+  }
+
+  @Test
+  public void eventsOfLastDayShouldBeZeroIfAllEventsAreTooOld() throws Exception {
+    List<LocalDateTime> oldEventTimes = asList(
+      now.minusHours(24), now.minusHours(36), now.minusHours(90)
+    );
+    registerEvents(oldEventTimes);
+    assertEquals(0L, stats.countEventsOfLastDay());
+  }
+
   private void registerEvents(List<LocalDateTime> eventTimes) {
     for (LocalDateTime eventTime : eventTimes) {
       stats.registerEvent(eventTime);
