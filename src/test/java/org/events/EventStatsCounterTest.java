@@ -70,10 +70,10 @@ public class EventStatsCounterTest {
 
   @Test
   public void eventsOfLastHourShouldBeZeroIfAllEventsAreTooOld() throws Exception {
-    List<LocalDateTime> oldEvents = asList(
+    List<LocalDateTime> oldEventTimes = asList(
       now.minusMinutes(90), now.minusHours(1), now.minusHours(4), now.minusDays(1)
     );
-    registerEvents(oldEvents);
+    registerEvents(oldEventTimes);
     assertEquals(0L, stats.countEventsOfLastHour());
   }
 
