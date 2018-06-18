@@ -3,6 +3,7 @@ package org.events;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static java.time.temporal.ChronoUnit.*;
@@ -12,7 +13,7 @@ import static java.time.temporal.ChronoUnit.*;
  */
 public class EventStatsCounter implements EventStats {
 
-  private ConcurrentLinkedQueue<LocalDateTime> eventTimes = new ConcurrentLinkedQueue<LocalDateTime>();
+  private Queue<LocalDateTime> eventTimes = new ConcurrentLinkedQueue<>();
 
   @Override
   public void registerEvent(LocalDateTime dateTime) {
