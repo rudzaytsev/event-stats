@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.time.LocalDateTime.now;
 import static org.junit.Assert.assertEquals;
@@ -14,26 +15,19 @@ import static org.junit.Assert.assertEquals;
  */
 public class ParallelEventStatsTest {
 
-  private EventStats stats = new EventStatsCounter();
+  private static final int EVENTS = 10000;
   private static final int NUMBER_OF_THREADS = Runtime.getRuntime().availableProcessors() + 5;
+
+  private EventStats stats = new EventStatsCounter();
   private ExecutorService executor = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
   @Test
   public void countingEventsAfterWorkingInParallelUnderLoad() throws Exception {
-    Runnable event = new Runnable() {
-      @Override
-      public void run() {
-        stats.registerEvent(now());
-      }
-    };
-
-    final int EVENTS = 10000;
     for (int i = 0; i < EVENTS; i++) {
-      executor.submit(event);
+      executor.submit(() -> stats.registerEvent(now()));
     }
 
-    final int ONE_SECOND = 1000;
-    Thread.sleep(ONE_SECOND);
+    TimeUnit.SECONDS.sleep(1);
 
     assertEquals(EVENTS, stats.countEventsOfLastMinute());
     assertEquals(EVENTS, stats.countEventsOfLastHour());
