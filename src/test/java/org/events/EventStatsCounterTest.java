@@ -18,14 +18,14 @@ public class EventStatsCounterTest {
   private final LocalDateTime now = LocalDateTime.now();
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     counter = spy(new EventStatsCounter());
     doReturn(now).when(counter).getCurrentTime();
     stats = counter;
   }
 
   @Test
-  public void getCurrentTimeMethodSpying() throws Exception {
+  public void getCurrentTimeMethodSpying() {
     assertEquals(now, counter.getCurrentTime());
   }
 
@@ -37,20 +37,20 @@ public class EventStatsCounterTest {
   }
 
   @Test
-  public void eventsOfLastMinuteShouldBeCounted() throws Exception {
+  public void eventsOfLastMinuteShouldBeCounted() {
     List<LocalDateTime> eventTimes = asList(
       now.minusSeconds(5), now.minusSeconds(59),
-      now.minusMinutes(1), now.minusMinutes(3),
-      now.minusHours(1)
+      now.minusMinutes(1), now.minusSeconds(60),
+      now.minusMinutes(3), now.minusHours(1)
     );
     registerEvents(eventTimes);
-    assertEquals(2L, stats.countEventsOfLastMinute());
+    assertEquals(4L, stats.countEventsOfLastMinute());
   }
 
   @Test
-  public void eventsOfLastMinutedShouldBeZeroIfAllEventsAreTooOld() throws Exception {
+  public void eventsOfLastMinutedShouldBeZeroIfAllEventsAreTooOld() {
     List<LocalDateTime> oldEventTimes = asList(
-      now.minusSeconds(60), now.minusMinutes(2),
+      now.minusSeconds(61), now.minusMinutes(2),
       now.minusMinutes(5), now.minusHours(3)
     );
     registerEvents(oldEventTimes);
@@ -58,27 +58,27 @@ public class EventStatsCounterTest {
   }
 
   @Test
-  public void eventsOfLastHourShouldBeCounted() throws Exception {
+  public void eventsOfLastHourShouldBeCounted() {
     List<LocalDateTime> eventTimes = asList(
       now.minusSeconds(30), now.minusSeconds(40), now.minusSeconds(55),
       now.minusMinutes(10), now.minusMinutes(25), now.minusMinutes(59),
       now.minusHours(1), now.minusHours(2), now.minusHours(3)
     );
     registerEvents(eventTimes);
-    assertEquals(6L, stats.countEventsOfLastHour());
+    assertEquals(7L, stats.countEventsOfLastHour());
   }
 
   @Test
-  public void eventsOfLastHourShouldBeZeroIfAllEventsAreTooOld() throws Exception {
+  public void eventsOfLastHourShouldBeZeroIfAllEventsAreTooOld() {
     List<LocalDateTime> oldEventTimes = asList(
-      now.minusMinutes(90), now.minusHours(1), now.minusHours(4), now.minusDays(1)
+      now.minusMinutes(90), now.minusMinutes(61), now.minusHours(4), now.minusDays(1)
     );
     registerEvents(oldEventTimes);
     assertEquals(0L, stats.countEventsOfLastHour());
   }
 
   @Test
-  public void eventsOfLastDayShouldBeCounted() throws Exception {
+  public void eventsOfLastDayShouldBeCounted() {
     List<LocalDateTime> eventTimes = asList(
       now.minusHours(5), now.minusHours(5), now.minusHours(12),
       now.minusHours(24), now.minusDays(1), now.minusDays(2), now.minusDays(3)
@@ -88,7 +88,7 @@ public class EventStatsCounterTest {
   }
 
   @Test
-  public void eventsOfLastDayShouldBeZeroIfAllEventsAreTooOld() throws Exception {
+  public void eventsOfLastDayShouldBeZeroIfAllEventsAreTooOld() {
     List<LocalDateTime> oldEventTimes = asList(
       now.minusHours(24), now.minusHours(36), now.minusHours(90)
     );

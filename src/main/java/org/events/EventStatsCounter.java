@@ -2,41 +2,68 @@ package org.events;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import static java.time.temporal.ChronoUnit.*;
+import java.time.temporal.TemporalUnit;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * Counter of registered events
  */
 public class EventStatsCounter implements EventStats {
 
-  private Queue<LocalDateTime> eventTimes = new ConcurrentLinkedQueue<>();
+  public static final int MAX_SECONDS_IN_DAY = 24 * 3600;
+
+  /**
+   * number of events in n-th second
+   */
+  private AtomicLongArray events = new AtomicLongArray(MAX_SECONDS_IN_DAY);
+
+  private ScheduledExecutorService service = Executors.newScheduledThreadPool(2);
+
+  public EventStatsCounter() {
+    service.scheduleAtFixedRate(() -> {
+      int currentSecond = toSecondOfDay(getCurrentTime());
+      int nextSecond = (currentSecond + 1) % MAX_SECONDS_IN_DAY;
+      events.getAndSet(nextSecond, 0);
+    },
+     0, 1, TimeUnit.SECONDS);
+  }
 
   @Override
   public void registerEvent(LocalDateTime dateTime) {
-    eventTimes.offer(dateTime);
+    int secondInDay = toSecondOfDay(dateTime);
+    events.incrementAndGet(secondInDay);
+  }
+
+  private int toSecondOfDay(LocalDateTime dateTime) {
+    return dateTime.getSecond() + dateTime.getMinute() * 60 + dateTime.getHour() * 3600;
   }
 
   @Override
   public long countEventsOfLastMinute() {
-    return countEventsInLastOneOf(MINUTES);
+    return countEventsSomeTimeAgo(1, ChronoUnit.MINUTES);
   }
 
-  private long countEventsInLastOneOf(ChronoUnit timeUnit) {
+  private long countEventsSomeTimeAgo(long timeAmount, TemporalUnit temporalUnit) {
     LocalDateTime now = getCurrentTime();
-    Iterator<LocalDateTime> iter = eventTimes.iterator();
-    long sum = 0;
-    while(iter.hasNext()) {
-      LocalDateTime eventTime = iter.next();
-      if (eventTime.isBefore(now) && eventTime.isAfter(now.minus(1, timeUnit))) {
-        sum++;
-      }
+    LocalDateTime someTimeAgo = now.minus(timeAmount, temporalUnit);
+
+    int start = toSecondOfDay(someTimeAgo);
+    int end = toSecondOfDay(now);
+
+    if (end < start) return 0;
+
+    LongAdder adder = new LongAdder();
+    for (int i = start; i < end; i++) {
+      adder.add(events.get(i));
     }
-    return sum;
+    return adder.sum();
   }
+
 
   LocalDateTime getCurrentTime() {
     return LocalDateTime.now();
@@ -44,11 +71,11 @@ public class EventStatsCounter implements EventStats {
 
   @Override
   public long countEventsOfLastHour() {
-    return countEventsInLastOneOf(HOURS);
+    return countEventsSomeTimeAgo(1, ChronoUnit.HOURS);
   }
 
   @Override
   public long countEventsOfLastDay() {
-    return countEventsInLastOneOf(DAYS);
+    return countEventsSomeTimeAgo(1, ChronoUnit.DAYS);
   }
 }
